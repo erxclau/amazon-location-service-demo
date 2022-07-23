@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template will create Amazon Location Service map and place index resources, and an Amazon Cognito identity pool and associated IAM role and policy. The policy will restrict use of the map and place index resources to the specified domain. 
+Parameters:
+  ResourceNamePrefix:
+    Type: String
+    Description: This prefix will be used for map, place index and identity pool resources
+  Domain:
+    Type: String
+    Description: Enter the protocol and domain for your site (e.g., https://www.example.com to allow access from https://www.example.com/* or http://localhost:<port> for local development);
+Resources:
+    Map:
+      Type: 'AWS::Location::Map'
+      Properties:
+        Configuration:
+          Style: VectorEsriNavigation
+        MapName: !Sub '${ResourceNamePrefix}Map'
+        PricingPlan: RequestBasedUsage
+    Index:
+      Type: 'AWS::Location::PlaceIndex'
+      Properties:
+        DataSource: Esri
+        DataSourceConfiguration:
+          IntendedUse: SingleUse
+        IndexName: !Sub '${ResourceNamePrefix}Index'
+        PricingPlan: RequestBasedUsage
+    IdentityPool:
+      Type: 'AWS::Cognito::IdentityPool'
+      Properties:
+        IdentityPoolName: !Sub '${ResourceNamePrefix}Pool'
+        AllowUnauthenticatedIdentities: true
+    CognitoUnAuthorizedRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Principal:
+                Federated: cognito-identity.amazonaws.com
+              Action:
+                - 'sts:AssumeRoleWithWebIdentity'
+              Condition:
+                StringEquals:
+                  'cognito-identity.amazonaws.com:aud': !Ref IdentityPool
+                'ForAnyValue:StringLike':
+                  'cognito-identity.amazonaws.com:amr': unauthenticated
+        Policies:
+          - PolicyName: !Sub '${ResourceNamePrefix}UnauthorizedPolicy'
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Sid: SearchPlaceIndexOnly
+                  Effect: Allow
+                  Action:
+                    - 'geo:SearchPlaceIndexForText'
+                  Resource: !Sub 'arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:place-index/${Index}' 
+                  Condition:
+                    StringLike:
+                      'aws:Referer':
+                        - !Sub '${Domain}/*'               
+                - Sid: MapsReadOnly
+                  Effect: Allow
+                  Action:
+                    - 'geo:GetMap*'
+                  Resource: !Sub 'arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:map/${Map}'
+                  Condition:
+                    StringLike:
+                      'aws:Referer':
+                        - !Sub '${Domain}/*'
+    IdentityPoolRoleMapping:
+      Type: 'AWS::Cognito::IdentityPoolRoleAttachment'
+      Properties:
+        IdentityPoolId: !Ref IdentityPool
+        Roles:
+          unauthenticated: !GetAtt CognitoUnAuthorizedRole.Arn
+Outputs:
+  IdentityPoolID:
+    Description: The Cognito identity pool ID 
+    Value: !Ref IdentityPool
+  MapName:
+    Description: The Map resource name
+    Value: !Ref Map  
+  PlaceIndexName:
+    Description: The Place Index resource name
+    Value: !Ref Index

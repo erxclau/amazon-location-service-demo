@@ -1,0 +1,13 @@
+{
+  "name": "amazon-location-service-demo",
+  "version": "1.0.0",
+  "description": "A demonstration of Amazon Location Service",
+  "author": "Eric Lau",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "vite": "^3.0.2"
+  }
+}
