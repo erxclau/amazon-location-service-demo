@@ -52,6 +52,7 @@ Resources:
                 - Sid: SearchPlaceIndexOnly
                   Effect: Allow
                   Action:
+                    - 'geo:SearchPlaceIndexForSuggestions'
                     - 'geo:SearchPlaceIndexForText'
                   Resource: !Sub 'arn:${AWS::Partition}:geo:${AWS::Region}:${AWS::AccountId}:place-index/${Index}' 
                   Condition:
