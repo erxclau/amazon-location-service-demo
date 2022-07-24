@@ -15,5 +15,6 @@ This uses a native HTML datalist and search input to achieve text autocomplete. 
 ## Preview
 
 1. You'll need to copy the `IdentityPoolID` from the stack output and set it to `VITE_AWS_COGNITO_IDENTITY_POOL` in your `.env` file. Note that you don't need to hide the identity pool ID in production. I'm only storing it in an environment variable here because this is a demonstration repository.
-2. Install `vite` by running `yarn install`. We're using `vite` as a development server and to retrieve the environment variable.
+2. Install dependencies by running `yarn install`. We're using `vite` as a development server and to retrieve the environment variable.
 3. Run `yarn dev` to start the server.
+4. Run `yarn build` to build production output and `yarn preview` to run the production build.
