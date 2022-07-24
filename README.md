@@ -1,5 +1,9 @@
 # amazon-location-service-demo
 
+This is a proof-of-concept for using some [Amazon Location Service](https://aws.amazon.com/location/) APIs to mark a location on a map. This map is centered in Ann Arbor, Michigan.
+
+This uses a native HTML datalist and search input to achieve text autocomplete. These are not very stylistically customizable so it may be better to use a library to create a [combo box](https://en.wikipedia.org/wiki/Combo_box).
+
 ## Set up AWS
 
 1. Navigate to AWS CloudFormation and create a new stack.
