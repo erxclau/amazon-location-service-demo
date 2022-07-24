@@ -53,17 +53,16 @@ window.onload = async () => {
     zoom: 11, // initial map zoom
     style: "Map",
     hash: false,
+    interactive: false,
     transformRequest,
   })
-
-  map.addControl(new maplibregl.NavigationControl(), "top-left");
 
   let marker;
 
   $("#address").autocomplete({
     minLength: 3,
-    source: async (request, response) => {
-      if (!request.term.length) {
+    source: async ({ term }, response) => {
+      if (!term.length) {
         response([]);
       }
 
@@ -71,7 +70,7 @@ window.onload = async () => {
         IndexName: "Index",
         FilterBBox: box,
         MaxResults: 5,
-        Text: request.term,
+        Text: term,
       });
 
       const data = await client.send(command);
