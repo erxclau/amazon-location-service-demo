@@ -2,6 +2,7 @@ import { LocationClient, SearchPlaceIndexForSuggestionsCommand, SearchPlaceIndex
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
 import { Signer } from "@aws-amplify/core";
+import { polygonContains } from "d3-polygon";
 
 window.onload = async () => {
   const region = "us-east-2";
@@ -57,7 +58,9 @@ window.onload = async () => {
     transformRequest,
   })
 
-  let marker;
+  let addressMarker;
+  let pollingMarker;
+  let layer;
 
   $("#address").autocomplete({
     minLength: 3,
@@ -77,7 +80,6 @@ window.onload = async () => {
       response(data.Results.map(d => d.Text));
     },
     select: async (_, { item: { value } }) => {
-
       const command = new SearchPlaceIndexForTextCommand({
         IndexName: "Index",
         FilterBBox: box,
@@ -88,15 +90,67 @@ window.onload = async () => {
       const data = await client.send(command);
 
       const position = data.Results[0].Place.Geometry.Point;
-      if (marker) {
-        marker.remove();
+      if (addressMarker) {
+        addressMarker.remove();
       }
 
-      marker = new maplibregl.Marker()
+      addressMarker = new maplibregl.Marker()
         .setLngLat(position)
         .addTo(map);
 
-      map.flyTo({ center: data.Results[0].Place.Geometry.Point });
+      const bounds = await import("./geojson/bounds.json");
+      const locations = await import("./geojson/locations.json");
+
+      const bound = bounds.features
+        .filter(f => polygonContains(
+          f.geometry.coordinates.at(0).at(0), position
+        ))
+        .pop();
+
+      const polling = locations.features
+        .filter(f => f.properties.WRDPCT === bound.properties.WRDPCT)
+        .pop();
+
+      if (pollingMarker) {
+        pollingMarker.remove();
+      }
+
+      pollingMarker = new maplibregl.Marker()
+        .setLngLat(polling.geometry.coordinates)
+        .addTo(map);
+
+      if (!map.getSource('bound-source')) {
+        map.addSource(`bound-source`, {
+          type: 'geojson',
+          data: bound,
+        });
+      } else {
+        map.getSource('bound-source').setData(bound);
+      }
+
+      if (!layer) {
+        layer = map.addLayer({
+          id: `bound-layer`,
+          source: `bound-source`,
+          type: 'fill',
+          paint: {
+            "fill-color": "#34aeeb",
+            "fill-opacity": 0.7
+          }
+        });
+      }
+
+      let [swLong, swLat, neLong, neLat] = bound.bbox;
+      let [long, lat] = polling.geometry.coordinates;
+
+      swLong = Math.min(swLong, long);
+      swLat = Math.min(swLat, lat);
+      neLong = Math.max(neLong, long);
+      neLat = Math.max(neLat, lat);
+
+      map.fitBounds([swLong, swLat, neLong, neLat], {
+        padding: 75,
+      });
     }
   });
 }
