@@ -1,47 +1,7 @@
-// $(function () {
-//   var availableTags = [
-//     "ActionScript",
-//     "AppleScript",
-//     "Asp",
-//     "BASIC",
-//     "C",
-//     "C++",
-//     "Clojure",
-//     "COBOL",
-//     "ColdFusion",
-//     "Erlang",
-//     "Fortran",
-//     "Groovy",
-//     "Haskell",
-//     "Java",
-//     "JavaScript",
-//     "Lisp",
-//     "Perl",
-//     "PHP",
-//     "Python",
-//     "Ruby",
-//     "Scala",
-//     "Scheme"
-//   ];
-//   $("#tags").autocomplete({
-//     source: availableTags
-//   });
-// });
-
 import { LocationClient, SearchPlaceIndexForSuggestionsCommand, SearchPlaceIndexForTextCommand } from "@aws-sdk/client-location";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
 import { Signer } from "@aws-amplify/core";
-
-function debounce(func, timeout = 300) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      func.apply(args);
-    }, timeout);
-  };
-};
 
 window.onload = async () => {
   const region = "us-east-2";
@@ -98,67 +58,46 @@ window.onload = async () => {
 
   map.addControl(new maplibregl.NavigationControl(), "top-left");
 
-  const input = document.getElementById("address");
-  const datalist = document.getElementById("address-suggestions");
-
-  const search = async () => {
-    if (!input.value.length) {
-      return;
-    }
-
-    const command = new SearchPlaceIndexForSuggestionsCommand({
-      IndexName: "Index",
-      FilterBBox: box,
-      MaxResults: 5,
-      Text: input.value,
-    });
-
-    const data = await client.send(command);
-
-    const options = data.Results.map(d => d.Text);
-    const children = Array();
-    for (const option of options) {
-      const o = document.createElement("option");
-      o.value = option;
-      o.textContent = option;
-      children.push(o);
-    };
-    datalist.replaceChildren(...children);
-  };
-
-  if ("onsearch" in input) {
-    input.onsearch = search;
-  } else {
-    input.oninput = debounce(search);
-  }
-
   let marker;
-  input.onchange = async () => {
-    console.log("here");
-    for (let i = 0; i < datalist.childElementCount; i++) {
-      const option = datalist.children[i];
-      if (option.textContent === input.value) {
 
-        const command = new SearchPlaceIndexForTextCommand({
-          IndexName: "Index",
-          FilterBBox: box,
-          MaxResults: 1,
-          Text: input.value,
-        });
-
-        const data = await client.send(command);
-
-        const position = data.Results[0].Place.Geometry.Point;
-        if (marker) {
-          marker.remove();
-        }
-
-        marker = new maplibregl.Marker()
-          .setLngLat(position)
-          .addTo(map);
-
-        map.flyTo({ center: data.Results[0].Place.Geometry.Point });
+  $("#address").autocomplete({
+    minLength: 3,
+    source: async (request, response) => {
+      if (!request.term.length) {
+        response([]);
       }
+
+      const command = new SearchPlaceIndexForSuggestionsCommand({
+        IndexName: "Index",
+        FilterBBox: box,
+        MaxResults: 5,
+        Text: request.term,
+      });
+
+      const data = await client.send(command);
+      response(data.Results.map(d => d.Text));
+    },
+    select: async (_, { item: { value } }) => {
+
+      const command = new SearchPlaceIndexForTextCommand({
+        IndexName: "Index",
+        FilterBBox: box,
+        MaxResults: 1,
+        Text: value,
+      });
+
+      const data = await client.send(command);
+
+      const position = data.Results[0].Place.Geometry.Point;
+      if (marker) {
+        marker.remove();
+      }
+
+      marker = new maplibregl.Marker()
+        .setLngLat(position)
+        .addTo(map);
+
+      map.flyTo({ center: data.Results[0].Place.Geometry.Point });
     }
-  }
+  });
 }

@@ -8,7 +8,10 @@
     <style>
       @import url("main.css");
     </style>
-    <!-- <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"> -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.min.css"
+    />
     <link
       href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css"
       rel="stylesheet"
@@ -19,8 +22,7 @@
       <header>
         <h1>Amazon Location Service Demonstration</h1>
       </header>
-      <label for="address">Enter your address:</label>
-      <input
+      <!-- <input
         type="search"
         id="address"
         list="address-suggestions"
@@ -28,20 +30,24 @@
         spellcheck="true"
         autocomplete="street-address"
         incremental
-      />
-      <datalist id="address-suggestions">
-      </datalist>
-<!-- 
-      <div class="ui-widget">
-        <label for="tags">Tags: </label>
-        <input id="tags">
-      </div> -->
+      /> -->
+
+      <div class="ui-front">
+        <div class="ui-widget">
+          <label id="address-label" for="address">Enter your address:</label>
+          <input
+            id="address"
+            type="search"
+            placeholder="1201 S Main St, Ann Arbor, MI 48104"
+          />
+        </div>
+      </div>
 
       <div id="map"></div>
     </main>
     <script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
-    <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
-    <!-- <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script> -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script type="module" src="main.js"></script>
   </body>
 </html>

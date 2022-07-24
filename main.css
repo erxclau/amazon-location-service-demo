@@ -10,21 +10,29 @@ body {
   font-size: var(--font-size);
 }
 
-label {
+.ui-front ul {
+  display: block;
+}
+
+.ui-widget label {
   display: block;
   font-weight: bold;
   font-size: 1.25rem;
   margin-block-end: 0.5rem;
 }
 
-input {
+.ui-widget input {
   width: 100%;
   max-width: 500px;
   height: 2rem;
-  font-size: 1.25rem;
   padding: 0.5rem;
   border: 1px solid gray;
   margin-block-end: 1rem;
+}
+
+#address {
+  font-size: 1.25rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 #map {
