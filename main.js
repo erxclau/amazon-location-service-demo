@@ -3,6 +3,7 @@ import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-id
 import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
 import { Signer } from "@aws-amplify/core";
 import { polygonContains } from "d3-polygon";
+import Awesomplete from "awesomplete";
 
 function debounce(func, timeout = 300) {
   let timer;
