@@ -5,6 +5,8 @@ import { Signer } from "@aws-amplify/core";
 import { polygonContains } from "d3-polygon";
 
 window.onload = async () => {
+  const locationText = document.getElementById("polling-location");
+
   const region = "us-east-2";
   const cognitoPool = import.meta.env.VITE_AWS_COGNITO_IDENTITY_POOL;
   const box = [
@@ -111,13 +113,20 @@ window.onload = async () => {
         .filter(f => f.properties.WRDPCT === bound.properties.WRDPCT)
         .pop();
 
+      let [long, lat] = polling.geometry.coordinates;
+
       if (pollingMarker) {
         pollingMarker.remove();
       }
 
-      pollingMarker = new maplibregl.Marker()
+      pollingMarker = new maplibregl.Marker({ color: "#e34829" })
         .setLngLat(polling.geometry.coordinates)
         .addTo(map);
+
+      locationText.textContent = `${polling.properties.PLACE}`;
+      locationText.style.color = "#e34829";
+      locationText.style.fontWeight = "bold";
+      locationText.href = `https://maps.google.com/maps/place/${encodeURIComponent(polling.properties.ADDRESS)}/@${lat},${long}`;
 
       if (!map.getSource('bound-source')) {
         map.addSource(`bound-source`, {
@@ -141,7 +150,6 @@ window.onload = async () => {
       }
 
       let [swLong, swLat, neLong, neLat] = bound.bbox;
-      let [long, lat] = polling.geometry.coordinates;
 
       swLong = Math.min(swLong, long);
       swLat = Math.min(swLat, lat);
