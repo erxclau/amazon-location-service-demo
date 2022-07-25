@@ -2,7 +2,7 @@
 
 This is a proof-of-concept for using some [Amazon Location Service](https://aws.amazon.com/location/) APIs to mark a location on a map. This map is centered in Ann Arbor, Michigan.
 
-This currently uses jQuery UI to create the [autocomplete searchbox](https://jqueryui.com/autocomplete/). It is possible to create a similar UI with native HTML using a [datalist](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/datalist) and [search input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/search) but datalists are not particularly customizable. There are a plethora of other libraries that implement [combo]((https://en.wikipedia.org/wiki/Combo_box)) or search boxes. One can also build the search box on their own, though there are accessibility and standards considerations.
+This currently uses [Awesomplete](https://github.com/leaverou/awesomplete) to create the autocomplete searchbox. It is possible to create a similar UI with native HTML using a [datalist](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/datalist) and [search input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/search) but datalists are not particularly customizable. There are a plethora of other libraries that implement [combo]((https://en.wikipedia.org/wiki/Combo_box)) or search boxes such as [jQuery UI](https://jqueryui.com/autocomplete/) One can also build the search box on their own, though there are accessibility and standards considerations.
 
 ## Set up AWS
 
