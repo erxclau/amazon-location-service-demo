@@ -4,40 +4,25 @@ import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
 import { Signer } from "@aws-amplify/core";
 import { polygonContains } from "d3-polygon";
 
-window.onload = async () => {
-  const locationText = document.getElementById("polling-location");
-
-  const region = "us-east-2";
-  const cognitoPool = import.meta.env.VITE_AWS_COGNITO_IDENTITY_POOL;
-  const box = [
-    -83.7995698510551, 42.2257269162292,
-    -83.6761661429186, 42.3239369094827,
-  ];
-
+const getCredentials = async (region, pool) => {
   const provider = fromCognitoIdentityPool({
     client: new CognitoIdentityClient({
       region,
     }),
-    identityPoolId: cognitoPool
+    identityPoolId: pool
   });
 
-  const credentials = await provider();
+  return await provider();
+}
 
-  const client = new LocationClient({
-    region,
-    credentials: credentials
-  });
-
-  const transformRequest = (url, resourceType) => {
+const getRequestTransformer = (region, credentials) => {
+  return (url, resourceType) => {
     if (resourceType === "Style" && !url.includes("://")) {
-      // resolve to an AWS URL
       url = `https://maps.geo.${region}.amazonaws.com/maps/v0/maps/${url}/style-descriptor`;
     }
 
     if (url.includes("amazonaws.com")) {
-      // only sign AWS requests (with the signature as part of the query string)
       return {
-        // @aws-sdk/signature-v4 would be another option, but this needs to be synchronous
         url: Signer.signUrl(url, {
           access_key: credentials.accessKeyId,
           secret_key: credentials.secretAccessKey,
@@ -46,15 +31,28 @@ window.onload = async () => {
       };
     }
 
-    // don't sign
     return { url };
   };
+}
+
+window.onload = async () => {
+  const env = import.meta.env;
+  const cognitoPool = (env.MODE === "development") ? env.VITE_DEV_COGNITO_POOL : env.VITE_PROD_COGNITO_POOL;
+  const region = cognitoPool.split(":")[0];
+
+  const credentials = await getCredentials(region, cognitoPool);
+  const client = new LocationClient({ region, credentials });
+  const transformRequest = getRequestTransformer(region, credentials);
+
+  const box = [
+    -83.7995698510551, 42.2257269162292,
+    -83.6761661429186, 42.3239369094827,
+  ];
 
   const map = new maplibregl.Map({
     container: "map",
-    center: [-83.73786799698685, 42.27483191285595], // longitude, latitude
-    zoom: 11, // initial map zoom
-    style: "Map",
+    bounds: box,
+    style: "ElectionsPollingLocationProductionMap",
     hash: false,
     interactive: false,
     transformRequest,
@@ -64,6 +62,8 @@ window.onload = async () => {
   let pollingMarker;
   let layer;
 
+  const locationText = document.getElementById("polling-location");
+
   $("#address").autocomplete({
     minLength: 3,
     source: async ({ term }, response) => {
@@ -72,7 +72,7 @@ window.onload = async () => {
       }
 
       const command = new SearchPlaceIndexForSuggestionsCommand({
-        IndexName: "Index",
+        IndexName: "ElectionsPollingLocationProductionIndex",
         FilterBBox: box,
         MaxResults: 5,
         Text: term,
@@ -83,7 +83,7 @@ window.onload = async () => {
     },
     select: async (_, { item: { value } }) => {
       const command = new SearchPlaceIndexForTextCommand({
-        IndexName: "Index",
+        IndexName: "ElectionsPollingLocationProductionIndex",
         FilterBBox: box,
         MaxResults: 1,
         Text: value,
@@ -123,10 +123,11 @@ window.onload = async () => {
         .setLngLat(polling.geometry.coordinates)
         .addTo(map);
 
+      const address = encodeURIComponent(`${polling.properties.ADDRESS}, Ann Arbor, Michigan`)
       locationText.textContent = `${polling.properties.PLACE}`;
       locationText.style.color = "#e34829";
       locationText.style.fontWeight = "bold";
-      locationText.href = `https://maps.google.com/maps/place/${encodeURIComponent(polling.properties.ADDRESS)}/@${lat},${long}`;
+      locationText.href = `https://maps.google.com/maps/place/${address}/@${lat},${long}`;
 
       if (!map.getSource('bound-source')) {
         map.addSource(`bound-source`, {
