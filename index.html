@@ -6,12 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Amazon Location Service Demonstration</title>
     <style>
-      @import url("main.css");
+      @import url("css/main.css");
+      @import url("css/awesomplete.css");
     </style>
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.min.css"
-    />
     <link
       href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css"
       rel="stylesheet"
@@ -22,23 +19,20 @@
       <header>
         <h1>Amazon Location Service Demonstration</h1>
       </header>
-      <div class="ui-front">
-        <div class="ui-widget">
-          <label id="address-label" for="address">Enter your address:</label>
-          <input
-            id="address"
-            type="search"
-            placeholder="1201 S Main St, Ann Arbor, MI 48104"
-          />
-        </div>
+      <label id="address-label" for="address">Enter your address:</label>
+      <input
+        incremental
+        id="address"
+        type="search"
+        placeholder="1201 S Main St, Ann Arbor, MI 48104"
+      />
+      <div id="location">
+        Your polling place is located at
+        <a id="polling-location" target="_blank" rel="noreferrer">..</a>.
       </div>
-
-      <div id="location">Your polling place is located at <a id="polling-location" target="_blank" rel="noreferrer">..</a>.</div>
       <div id="map"></div>
     </main>
     <script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script type="module" src="main.js"></script>
   </body>
 </html>
